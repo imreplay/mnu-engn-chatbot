@@ -1,0 +1,25 @@
+{% extends 'bot_s/bot_base.html' %}
+
+{% block template %}
+"outputs": [
+  {
+    "simpleText": {
+        "text": "{{message}}"
+    }
+  }
+]{% if quickReplies %},
+"quickReplies":[
+{% for qr in quickReplies %}
+{
+  "label":"{{qr.label}}",
+  "action": "{{qr.action}}",
+  {% if qr.action == "block" %}
+  "blockId": "{{qr.b_id}}",
+  {% endif %}
+  "messageText": "{{qr.message}}"
+}{% if qr != quickReplies|last %},{% endif %}
+{% endfor %}
+
+]
+{% endif %}
+{% endblock %}

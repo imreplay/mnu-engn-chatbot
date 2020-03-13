@@ -1,0 +1,41 @@
+version: '3'
+
+volumes:
+  django_db_dev: {}
+
+services:
+  db-engn:
+    image: postgres
+    volumes:
+      - django_db_dev:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+
+  django-engn:
+    build:
+      context: .
+    environment:
+      - DJANGO_DEBUG=${DEBUG}
+      - DJANGO_DB_HOST=db-engn
+      - DJANGO_DB_PORT=5432
+      - DJANGO_DB_NAME=${DB_NAME}
+      - DJANGO_DB_USERNAME=${DB_USERNAME}
+      - DJANGO_DB_PASSWORD=${DB_PASSWORD}
+      - DJANGO_SECRET_KEY=${SECRET_KEY}
+
+    ports:
+      - "80:8000"
+    command:
+      - bash
+      - -c
+      - |
+        /wait-for-it.sh db-engn:5432 -t 10
+        python manage.py makemigrations
+        python manage.py migrate
+        python manage.py runserver 0:8000
+    restart: always
+    volumes:
+      - ./:/app/

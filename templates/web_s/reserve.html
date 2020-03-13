@@ -1,0 +1,37 @@
+{% extends 'web_s/base.html' %}
+
+{% block content %}
+  <!-- Table -->
+  <h3>Reserve</h3>
+  <h5>현재까지 등록된 예약 목록을 가져옵니다.</h5>
+  <div class="table-wrapper">
+    <table class="alt">
+      <thead>
+        <tr>
+          <th>예약자</th>
+          <th>시작시간-종료시간</th>
+          <th>예약일시</th>
+          {% if user.is_authenticated %}
+          <th>연락처</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for reserve in reserves %}
+        <tr>
+          {% if user.is_authenticated %}
+          <td>{{reserve.user.name}}({{reserve.user.department|slice:-2}})</td>
+          {% else %}
+          <td>{{reserve.user.name|slice:-1}}*({{reserve.user.department|slice:-2}})</td>
+          {% endif %}
+          <td>{{reserve.start_time|date:"Y-m-d / G:i"}} ~ {{reserve.end_time|date:"G:i"}}</td>
+          <td>{{reserve.reserve_time}}</td>
+          {% if user.is_authenticated %}
+          <td>{{reserve.user.phone}}</td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

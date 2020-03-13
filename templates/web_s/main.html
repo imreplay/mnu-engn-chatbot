@@ -1,0 +1,7 @@
+{% extends 'web_s/base.html' %}
+
+{% block content %}
+{% if message %}
+    {{message|safe}}
+{% endif %}
+{% endblock %}

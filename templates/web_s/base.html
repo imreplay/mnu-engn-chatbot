@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE HTML>
+<!--
+	Projection by TEMPLATED
+	templated.co @templatedco
+	Released for free under the Creative Commons Attribution 3.0 license (templated.co/license)
+-->
+<html>
+	<head>
+		<title>MNU 공대풋살장</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="stylesheet" href="{% static "assets/css/main.css" %}" />
+		<link href="https://fonts.googleapis.com/css?family=Hi+Melody|Noto+Sans+KR&display=swap" rel="stylesheet">
+	</head>
+	<body>
+
+		<!-- Header -->
+			<header id="header">
+				<div class="inner">
+					<a href="https://www.instagram.com/im_replay/?hl=ko" target="_blank" class="logo"><strong>Made</strong> by Imreplay</a>
+					<nav id="nav">
+						<a href="/">Home</a>
+						{% if user.is_authenticated %}
+						<a href="/users">사용자</a>
+						{% endif %}
+						<a href="/reserve">예약현황</a>
+						{% if user.is_authenticated %}
+						<a href="/engn_admin/logout/?next=/">로그아웃</a>
+						{% else %}
+						<a href="/engn_admin/login/?next=/users">로그인</a>
+						{% endif %}
+
+					</nav>
+					<a href="#navPanel" class="navPanelToggle"><span class="fa fa-bars"></span></a>
+				</div>
+      </header>
+    
+    <!-- Main -->
+			<section id="main" class="wrapper">
+				<div class="inner">
+					<header class="align-center">
+						<h2>목포대학교 공과대학 풋살장 예약 시스템</h2>
+						{% if user.is_authenticated %}
+						<a href="/engn_admin">Management Page</a>
+						{% endif %}
+          </header>
+          {% block content %}
+          {% endblock %}
+
+      </div>
+    </section>
+
+    <!-- Scripts -->
+      <script src="/static/assets/js/jquery.min.js"></script>
+      <script src="/static/assets/js/skel.min.js"></script>
+      <script src="/static/assets/js/util.js"></script>
+      <script src="/static/assets/js/main.js"></script>
+
+  </body>
+</html>

@@ -1,0 +1,22 @@
+{% extends 'bot_s/bot_base.html' %}
+
+{% block template %}
+"outputs": [
+  {
+    "simpleText": {
+        "text": "{{message}}"
+    }
+  }
+]{% if quickReplies %},
+"quickReplies":[
+{
+  "label":"{{quickReplies.label}}",
+  "action": "{{quickReplies.action}}",
+  {% if quickReplies.action == "block" %}
+  "blockId": "{{quickReplies.b_id}}",
+  {% endif %}
+  "messageText": "{{quickReplies.message}}"
+}
+]
+{% endif %}
+{% endblock %}
