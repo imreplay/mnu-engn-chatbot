@@ -37,6 +37,11 @@ class AdduserTV(TemplateView):
       if(ck_user):
         msg = "이미 존재하는 사용자입니다."
       else:
+        if "학과" not in data['department']:
+          if "학" in data['department']:
+            data['department']+="과"
+          else:
+            data['department']+="학과"
         user, flag = User.objects.get_or_create(
           name=data['name'],
           department=data['department'],
@@ -109,7 +114,6 @@ class ReserveOKTV(TemplateView):
         times[i] = list(map(int,t.split(":")))
         if t.count(":")>1:
           return -1
-        
       else:
         t += ":00"
         times[i] = list(map(int,t.split(":")))
@@ -124,6 +128,13 @@ class ReserveOKTV(TemplateView):
     elif datetime.timedelta(hours=times[1][0],minutes=times[1][1])-datetime.timedelta(hours=times[0][0],minutes=times[0][1]) < datetime.timedelta(minutes=20): 
       return "예약시간이 너무 짧습니다."
     return "OK"
+  def check_count(self, u, st):
+    sday, eday = ReserveTV.get_next_week(self)
+    ck_day = Reserve.objects.filter(user__department=u.department,start_time__date=st).count()
+    ck_week = Reserve.objects.filter(user__department=u.department,start_time__range=[sday,eday]).count()
+    if(ck_day>=1 or ck_week>=2):
+      return False
+    return True
   def post(self, request, **kwargs):
     data = json.loads(request.body)
 
@@ -147,6 +158,7 @@ class ReserveOKTV(TemplateView):
     et = datetime.datetime(year=datetime.datetime.today().year, month=int(req_m),day=int(req_d),hour=req_et[0],minute=req_et[1])
     one_sec = datetime.timedelta(seconds=1)
     resv = Reserve.objects.filter(Q(start_time__range=[st,et-one_sec])|Q(end_time__range=[st+one_sec,et]))
+
     if resv.exists():
       msg = resv[0].start_time.strftime('%m-%d (%H:%M ~')
       msg += resv[0].end_time.strftime('%H:%M) ')
@@ -154,6 +166,11 @@ class ReserveOKTV(TemplateView):
       context['message']=f'이미 예약이 되어있는 시간입니다.\\n{msg}\\n예약을 다시 진행해주세요.'
     else:
       user = User.objects.get(kakao_id=data['userRequest']['user']['id'])
+      # 수정시작
+      if not self.check_count(user, st):
+        context['message']="최대 예약 가능일수를 초과하였습니다.\\n - 하나의 요일에 1회 예약가능\\n - 일주일에 2회 예약가능"
+        return self.render_to_response(context)
+      # 수정끝
       Reserve.objects.create(user=user,start_time=st,end_time=et)
       context['message']=f'{req_st[0]:02d}:{req_st[1]:02d}~{req_et[0]:02d}:{req_et[1]:02d} / {user.department[:-2]}\\n\\n예약이 완료되었습니다.\\n감사합니다.'
 
@@ -184,7 +201,7 @@ class ReserveCKTV(TemplateView):
   def post(self, request, **kwargs):
     data = json.loads(request.body)
     context = {'message':''}
-    if "주" not in data['userRequest']['utterance']:
+    if ReserveTV.check_day(self) and "주" not in data['userRequest']['utterance']:
       context['message'] = "예약현황을 조회합니다.\\n어느 주의 예약 현황을 확인할까요?"
       context['quickReplies'] = [
         {'label':'이번주','message':'이번주','action':'block','b_id':'5da47cc48192ac00011589bf'},
@@ -245,6 +262,9 @@ class Admin_verify(TemplateView):
       return self.render_to_response(context)
 
     users = User.objects.filter(verify='unverified')
+    if not users.exists():
+      context['message'] = "승인되지 않은 사용자가 없습니다."
+      return self.render_to_response(context)
     if data['userRequest']['block']['id']=="5e68fcbfa47f190001b18ff6":
       no_list = data['action']['params']['id'].strip().split(" ")
       for i,u in enumerate(users):
